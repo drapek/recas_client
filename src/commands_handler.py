@@ -40,17 +40,22 @@ class S(BaseHTTPRequestHandler):
 
     def _start_streaming_video(self):
         settings["STREAM_END_TIME"] = time.time() + settings["STREAM_BASE_UNIT_LENGTH"]
-        self.wfile.write("[Success] Stream opened until {}".format(settings["STREAM_END_TIME"]))
+        self.wfile.write(json.dumps({'success': True,
+                                     'data': "Stream opened until {}".format(settings["STREAM_END_TIME"])}))
 
     def _change_settings(self):
-        settings_that_changed = json.loads(self.rfile.read())
+        json_length = int(self.headers.getheader('Content-Length'))
+        if json_length == 0:
+            self.wfile.write(json.dumps({'success': False, 'data': 'no json content'}))
+            return
+        settings_that_changed = json.loads(self.rfile.read(json_length))
         for setting in settings_that_changed:
             if setting in settings:
                 settings[setting] = settings_that_changed[setting]
+        self.wfile.write(json.dumps({'success': True}))
 
     def _return_actual_settings(self):
         data = json.dumps(settings)
-
         self.wfile.write(str(data))
 
 
