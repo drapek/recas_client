@@ -69,7 +69,15 @@ class CameraAnalyzer:
         if not self.socket_open:
             self.socket = socket.socket(socket.AF_INET,  # Internet
                                         socket.SOCK_STREAM)  # Stream
-            self.socket.connect((settings["STREAM_IP"], settings["STREAM_PORT"]))
+            connected = False
+            while not connected:
+                try:
+                    self.socket.connect((settings["STREAM_IP"], settings["STREAM_PORT"]))
+                    connected = True
+                except Exception as e:
+                    print(e)
+                    print ("Oh snap! I can't connect to the server. Retrying after 5 seconds.")
+                    time.sleep(5)
             self.socket_open = True
 
     def _close_socket(self):
